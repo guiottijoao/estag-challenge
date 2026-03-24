@@ -1,14 +1,17 @@
 <?php
 
-class CategoryController {
+class CategoryController
+{
 
   private $db;
 
-  public function __construct(PDO $db) {
+  public function __construct(PDO $db)
+  {
     $this->db = $db;
   }
 
-  public function store(array $data) {
+  public function store(array $data)
+  {
     try {
       $this->validate($data);
 
@@ -22,9 +25,21 @@ class CategoryController {
     }
   }
 
-  private function validate(array $data) {
-    if (empty(trim($data['name']))) {
+  private function validate(array $data)
+  {
+    $name = trim($data['name']);
+
+    if (empty($name)) {
       throw new Exception("Category name is required.");
+    }
+
+    if (mb_strlen($name) > 20) {
+      throw new Exception("Category name cannot exceed 20 characters.");
+    }
+
+    // verificar se contém apenas letras, números e espeços
+    if (!preg_match('/^[\p{L}\p{N}\s]+$/u', $name)) {
+      throw new Exception("Name contains invalid characters.");
     }
 
     if ($this->nameExists($data['name'])) {
@@ -36,14 +51,28 @@ class CategoryController {
     }
   }
 
-  private function nameExists(string $name) {
-    $stmt = $this->db->prepare("SELECT COUNT(*) FROM categories WHERE name = :name");
-    $stmt->bindValue(':name', $name);
+  private function nameExists(string $name)
+  {
+    $trimmedName = trim($name);
+    $normalizedName = str_replace(' ', '', $trimmedName);
+
+    $query = "SELECT COUNT(*) FROM categories WHERE LOWER(REPLACE(name, ' ', '')) = LOWER(:normalizedName)";
+    $stmt = $this->db->prepare($query);
+    $stmt->bindValue(':normalizedName', $normalizedName);
     $stmt->execute();
     return $stmt->fetchColumn() > 0;
   }
 
-  private function sanitize(string $string) {
-    return htmlspecialchars(strip_tags(trim($string)));
+  private function sanitize(string $string)
+  {
+    $string = trim($string);
+
+    $string = strip_tags($string);
+
+    $string = preg_replace('/\s+/', ' ', $string);
+
+    return htmlspecialchars(preg_replace('/\s+/', ' ', strip_tags(trim($string))));
   }
 }
+
+//testar
