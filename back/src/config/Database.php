@@ -5,6 +5,7 @@ class Database
 
   public static function getConnection()
   {
+    // deveriam estar numa env mas o docker compose tava dando trabalho
     if (!self::$instance) {
       $host = "pgsql_desafio";
       $db = "applicationphp";
