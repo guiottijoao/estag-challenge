@@ -33,11 +33,11 @@ if ($stmt->rowCount() > 0) {
 
 <body>
   <nav class="navbar">
-    <a href="./index.html" class="main-title">Suite Store</a>
+    <a href="./index.php" class="main-title">Suite Store</a>
     <ul class="nav-list">
-      <li class="nav-item"><a href="./products.html">Products</a></li>
-      <li class="nav-item"><a href="./categories.html">Categories</a></li>
-      <li class="nav-item"><a href="./history.html">History</a></li>
+      <li class="nav-item"><a href="./products.php">Products</a></li>
+      <li class="nav-item"><a href="./categories.php">Categories</a></li>
+      <li class="nav-item"><a href="./history.php">History</a></li>
     </ul>
   </nav>
 
