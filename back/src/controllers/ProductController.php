@@ -1,0 +1,81 @@
+<?php
+
+class ProductController
+{
+
+  private $db;
+
+  public function __construct(PDO $db)
+  {
+    $this->db = $db;
+  }
+
+  public function store(array $data) {
+
+    try {
+      $this->validate($data);
+
+      $stmt = $this->db->prepare("INSERT INTO products (name, amount, price, category) VALUES (:name, :amount, :price, :category_code)");
+      $stmt->bindValue(':name', $this->sanitize($data['name']), PDO::PARAM_STR);
+      $stmt->bindValue(':amount', (int)$data['amount']);
+      $stmt->bindValue(':price', $data['price']);
+      $stmt->bindValue(':category_code', $data['category-code']);
+
+      return $stmt->execute();
+
+    } catch (Exception $e) {
+      throw $e;
+    }
+  }
+
+  private function validate(array $data) {
+    $name = trim($data['name']);
+    $amount = $data['amount'];
+    $price = $data['price'];
+    $categoryCode = $data['category-code'];
+
+    if (empty($name)) {
+      throw new Exception("Name is required.");
+    }
+
+    if (mb_strlen($name) > 20) {
+      throw new Exception("Name cannot exceed 20 characters.");
+    }
+
+    if (!preg_match('/^[\p{L}\p{N}\s]+$/u', $name)) {
+      throw new Exception("Name contains invalid characters.");
+    }
+
+    if ($this->nameExists($name)) {
+      throw new Exception("Product with this name already exists.");
+    }
+
+    if ($amount < 1 || $amount > 10000) {
+      throw new Exception("Amount must be a number between 1 and 10000 (ten thousand).");
+    }
+
+    if ($price < 0.1 || $price > 1000000000) {
+      throw new Exception("Price must be a number between 0.1 and 1000000000 (one billion)");
+    }
+    
+    if (empty($categoryCode)) {
+      throw new Exception("Category is required");
+    }
+  }
+
+  private function nameExists(string $name) {
+    $trimmedName = trim($name);
+    $normalizedName = str_replace(' ', '', $trimmedName);
+
+    $query = "SELECT COUNT(*) FROM products WHERE LOWER(REPLACE(name, ' ', '')) = LOWER(:normalizedName)";
+    $stmt = $this->db->prepare($query);
+    $stmt->bindValue("normalizedName", $normalizedName);
+    $stmt->execute();
+
+    return $stmt->fetchColumn() > 0;
+  }
+
+  private function sanitize(string $string) {
+    return htmlspecialchars(preg_replace('/\s+/', ' ', trim($string)));
+  }
+}
