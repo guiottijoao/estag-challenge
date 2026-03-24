@@ -10,7 +10,15 @@ $stmt = $db->query("SELECT * FROM categories");
 if ($stmt->rowCount() > 0) {
   $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
 ?>
+
+<?php if (isset($_GET['error'])):  ?>
+  <script>
+    alert("<?php echo htmlspecialchars($_GET['error']); ?>");
+    window.history.replaceState({}, document.title, window.location.pathname);
+  </script>
+<?php endif; ?>
 
 <!doctype html>
 <html lang="en">
@@ -40,11 +48,11 @@ if ($stmt->rowCount() > 0) {
         <form action="actions/categories/createCategory.php" method="POST">
           <div class="form-fields">
             <input
-              id="category-name"
-              name="category-name"
+              id="name"
+              name="name"
               type="text"
               placeholder="Category name" />
-            <input id="category-tax" name="category-tax" type="number" placeholder="Tax" />
+            <input id="tax" name="tax" type="number" placeholder="Tax" />
           </div>
           <button class="submit-btn" id="submit-btn" type="submit">Add Category</button>
         </form>
