@@ -16,8 +16,6 @@ if ($product_stmt->rowCount() > 0) {
   $products = $product_stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-echo var_dump($products);
-
 function findCategoryById($categoryId, $categoriesList)
 {
   $results = array_filter($categoriesList, fn($category) => $category['code'] === $categoryId);
@@ -94,7 +92,7 @@ function findCategoryById($categoryId, $categoriesList)
                   <td><?= number_format($prod['amount'], 0, ',', '.') ?></td>
                   <td>$<?= number_format($prod['price'], 2, ',', '.') ?></td>
                   <td><?= findCategoryById($prod['category_code'], $categories) ?></td>
-                  <td><a class="delete-btn" href="actions/products/deleteProduct.php?code=<?= $cat['code']; ?>"
+                  <td><a class="delete-btn" href="actions/products/deleteProduct.php?code=<?= $prod['code']; ?>"
                       onclick="return confirm('Delete product?')">
                       Delete
                     </a></td>
