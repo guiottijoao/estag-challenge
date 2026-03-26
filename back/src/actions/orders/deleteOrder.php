@@ -1,12 +1,19 @@
 <?php
 
 require_once '../../config/Database.php';
+require_once '../../controllers/OrderController.php';
 
 $db = Database::getConnection();
+$controller = new OrderController($db);
 
 $id = $_GET['code'];
 
-$stmt = $db->prepare("DELETE FROM order_item WHERE code = :code");
-$stmt->execute([":code" => $id]);
+try {
+  $controller->delete($id);
+  header("Location: ../../index.php");
+} catch (Exception $e) {
+  error_log("DB Error " . $e->getMessage());
 
-header("Location: ../../index.php");
+  $message = urlencode($e->getMessage());
+  header("Location: ../../index.php?error=$message");
+}

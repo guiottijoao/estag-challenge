@@ -10,9 +10,9 @@ class OrderController
     $this->db = $db;
   }
 
-  private function calcOrderItemTotalTax(float $tax, float $unitPrice, int $amount)
+  private function calcOrderItemTotalTax(float $taxPercent, float $unitPrice, int $amount)
   {
-    return ($tax / 100) * $unitPrice * $amount;
+    return ($taxPercent / 100) * $unitPrice * $amount;
   }
 
   public function store(array $data)
@@ -114,6 +114,42 @@ class OrderController
 
     if ($amount < 1 || $amount > !is_int($amount)) {
       throw new Exception("Amount must be positive integer number.");
+    }
+  }
+
+  private function calculateOrderWhenItemDeleted(int $deletedItemId)
+  {
+    $item_stmt = $this->db->prepare("SELECT * FROM order_item o WHERE o.code = :code");
+    $item_stmt->bindValue(":code", $deletedItemId);
+    $item_stmt->execute();
+    $itemToDelete = $item_stmt->fetch(PDO::FETCH_ASSOC);
+
+    $itemTotalPrice = $itemToDelete['tax'] + ($itemToDelete['amount'] * $itemToDelete['price']);
+    error_log(print_r($itemTotalPrice, true));
+
+    $order_stmt = $this->db->query("SELECT * FROM orders");
+    $activeOrder = $order_stmt->fetch(PDO::FETCH_ASSOC);
+
+    $orderTotalPrice = $activeOrder['total'] - $itemTotalPrice;
+    $orderTotalTax = $activeOrder['tax'] - $itemToDelete['tax'];
+
+    $order_insert_stmt = $this->db->prepare("UPDATE orders o SET total = :total, tax = :tax");
+    $order_insert_stmt->execute([":total" => $orderTotalPrice, ":tax" => $orderTotalTax]);
+
+    if ($order_insert_stmt->rowCount() === 0) {
+      throw new Exception("Error during total calculation, no rows affected.");
+    }
+  }
+
+  public function delete(int $id)
+  {
+    $this->calculateOrderWhenItemDeleted($id);
+
+    $stmt = $this->db->prepare("DELETE FROM order_item WHERE code = :code");
+    $stmt->execute([":code" => $id]);
+    
+    if ($stmt->rowCount() === 0) {
+      throw new Exception("No register found to delete.");
     }
   }
 }
