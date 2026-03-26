@@ -118,7 +118,7 @@ function calcTotalOrderItemPrice(int $amount, float $price, float $totalTax)
                   <td>$<?= number_format($item['tax'], 2, ',', '.') ?></td>
                   <td>$<?= number_format(calcTotalOrderItemPrice($item['amount'], $item['price'], $item['tax']), 2, ',', '. ') ?></td>
                   <td><a class="delete-btn" href="actions/orders/deleteOrder.php?code=<?= $item['code']; ?>"
-                      onclick="return confirm('Delete order?')">
+                      onclick="return confirm('Delete item?')">
                       Delete
                     </a></td>
                 </tr>
