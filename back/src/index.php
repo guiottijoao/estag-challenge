@@ -5,6 +5,7 @@ $db = Database::getConnection();
 
 $products = [];
 $orderItems = [];
+// "orders" but it will always be only one
 $orders = [];
 
 $product_stmt = $db->query("SELECT * FROM products");
@@ -21,6 +22,8 @@ $orders_stmt = $db->query("SELECT * FROM orders");
 if ($orders_stmt->rowCount() > 0) {
   $orders = $orders_stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+$activeOrder = $orders ? $orders[0] : null;
 
 function findProductById($productId, $productsList)
 {
@@ -105,7 +108,7 @@ function calcTotalOrderItemPrice(int $amount, float $price, float $totalTax) {
                   <td><?= $item['amount'] ?></td>
                   <td>$<?= number_format($item['price'], 2, ',', '.') ?></td>
                   <td>$<?= number_format($item['tax'], 2, ',', '.') ?></td>
-                  <td>$<?= number_format(calcTotalOrderItemPrice($item['amount'], $item['price'], $item['tax'])) ?></td>
+                  <td>$<?= number_format(calcTotalOrderItemPrice($item['amount'], $item['price'], $item['tax']), 2, ',', '. ') ?></td>
                   <td><a class="delete-btn" href="actions/orders/deleteOrder.php?code=<?= $item['code']; ?>"
                       onclick="return confirm('Delete order?')">
                       Delete
@@ -120,12 +123,10 @@ function calcTotalOrderItemPrice(int $amount, float $price, float $totalTax) {
         <div class="summary">
           <div class="summary-values">
             <div class="summary-info">
-              <p id="total-order-tax">Tax:</p>
-              <!-- Dynamic tax -->
+              <p id="total-order-tax">Tax: $<?= $activeOrder ? number_format($activeOrder['tax'], 2, ',', '.') : '0,00' ?></p>
             </div>
             <div class="summary-info">
-              <p id="total-order-price">Total:</p>
-              <!-- Dynamic price -->
+              <p id="total-order-price">Total: $<?= $activeOrder ? number_format($activeOrder['total'], 2, ',', '.') : '0,00' ?></p>
             </div>
           </div>
 
