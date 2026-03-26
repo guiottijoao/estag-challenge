@@ -159,11 +159,6 @@ function calcTotalOrderItemPrice(int $amount, float $price, float $totalTax)
       document.getElementById('order-tax').value = `Tax: ${productCategory.tax}%`;
       document.getElementById('product-unit-price').value = `Price: $${product.price}`;
     });
-
-    // window.addEventListener("load", () => {
-      // const taxInput = document.getElementById("order-tax");
-      // const priceInput = document.getElementById("order-unit-price");
-    // })
   </script>
 </body>
 
