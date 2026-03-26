@@ -3,10 +3,16 @@ require_once __DIR__ . '/config/Database.php';
 
 $db = Database::getConnection();
 
+$categories = [];
 $products = [];
 $orderItems = [];
 // "orders" but it will always be only one
 $orders = [];
+
+$category_stmt = $db->query("SELECT * FROM categories");
+if ($category_stmt->rowCount() > 0) {
+  $categories = $category_stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
 $product_stmt = $db->query("SELECT * FROM products");
 if ($product_stmt->rowCount() > 0) {
@@ -31,7 +37,8 @@ function findProductById($productId, $productsList)
   return $product = array_values($results)[0]['name'];
 }
 
-function calcTotalOrderItemPrice(int $amount, float $price, float $totalTax) {
+function calcTotalOrderItemPrice(int $amount, float $price, float $totalTax)
+{
   return ($amount * $price) + $totalTax;
 }
 
@@ -72,6 +79,7 @@ function calcTotalOrderItemPrice(int $amount, float $price, float $totalTax) {
         <form action="actions/orders/createOrder.php" method="POST">
           <div class="product-selector">
             <select name="product-code" id="product-selector">
+              <option value="" disabled selected>Select a product</option>
               <?php foreach ($products as $prod): ?>
                 <option value="<?= $prod['code']; ?>"><?= $prod['name'] ?></option>
               <?php endforeach ?>
@@ -79,8 +87,8 @@ function calcTotalOrderItemPrice(int $amount, float $price, float $totalTax) {
           </div>
           <div class="product-fields">
             <input name="amount" id="product-amount" type="number" placeholder="Amount" />
-            <input name="tax" id="order-tax" type="text" disabled placeholder="Tax" />
-            <input name="price" id="product-unit-price" type="text" disabled placeholder="Price" />
+            <input name="tax" value="" id="order-tax" type="text" disabled placeholder="Tax" />
+            <input name="price" value="" id="product-unit-price" type="text" disabled placeholder="Price" />
           </div>
           <button class="submit-btn" id="submit-btn">Add to order</button>
         </form>
@@ -138,6 +146,25 @@ function calcTotalOrderItemPrice(int $amount, float $price, float $totalTax) {
       </section>
     </main>
   </div>
+
+  <script>
+    const products = <?= json_encode($products); ?>;
+    const categories = <?= json_encode($categories); ?>;
+
+    document.getElementById("product-selector").addEventListener("change", (e) => {
+      const code = e.target.value;
+      const product = products.find(p => p.code === Number(code));
+      const productCategory = categories.find(c => c.code === product.category_code);
+
+      document.getElementById('order-tax').value = `Tax: ${productCategory.tax}%`;
+      document.getElementById('product-unit-price').value = `Price: $${product.price}`;
+    });
+
+    // window.addEventListener("load", () => {
+      // const taxInput = document.getElementById("order-tax");
+      // const priceInput = document.getElementById("order-unit-price");
+    // })
+  </script>
 </body>
 
 </html>

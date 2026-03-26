@@ -105,7 +105,7 @@ class OrderController
 
   private function validate(array $data)
   {
-    $product = $data['product-code'];
+    $product = $data['product-code'] ?? null;
     $amount = $data['amount'];
 
     if (empty($product)) {
