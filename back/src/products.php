@@ -24,12 +24,18 @@ function findCategoryById($categoryId, $categoriesList)
 }
 ?>
 
-<?php if (isset($_GET['error'])):  ?>
+<?php if (isset($_GET['error']) && $_GET['error'] === 'fk'): ?>
+  <script>
+    alert("Can't delete, this item has associated registrations.")
+  </script>
+
+<?php elseif (isset($_GET['error'])):  ?>
   <script>
     alert("<?php echo htmlspecialchars($_GET['error']); ?>");
     window.history.replaceState({}, document.title, window.location.pathname);
   </script>
 <?php endif; ?>
+
 
 <!doctype html>
 <html lang="en">
