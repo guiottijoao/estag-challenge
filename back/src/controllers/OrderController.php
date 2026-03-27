@@ -26,10 +26,10 @@ class OrderController
     return true;
   }
 
-  private function isOrderItemRepeated($productId)
+  private function isOrderItemRepeated($productId, $orderId)
   {
-    $stmt = $this->db->prepare("SELECT * FROM order_item o WHERE o.product_code = :product_code");
-    $stmt->execute([":product_code" => $productId]);
+    $stmt = $this->db->prepare("SELECT * FROM order_item o WHERE o.product_code = :product_code AND o.order_code = :order_code");
+    $stmt->execute([":product_code" => $productId, ":order_code" => $orderId]);
     if ($stmt->rowCount() > 0) return true;
     return false;
   }
@@ -85,9 +85,9 @@ class OrderController
       );
 
       // Sem order -> cria order -> insere item
-      if ($order_select_stmt->rowCount() === 0) {
+      if (!$activeOrder) {
         $order_insert_stmt->execute([":total" => $orderItemTotalPrice,  ":tax" => $orderItemTotalTax]);
-        $order_select_stmt = $this->db->query("SELECT * FROM orders");
+        $order_select_stmt = $this->db->query("SELECT * FROM orders o WHERE o.status = 'open'");
         $activeOrder = $order_select_stmt->fetch(PDO::FETCH_ASSOC);
 
         return $insert_item_stmt->execute([":order_code" => $activeOrder['code'], ":product_code" => $productId, "amount" => $productAmount, ":price" => $productPrice, ":tax" => $orderItemTotalTax]);
@@ -99,10 +99,10 @@ class OrderController
         $order_update_stmt->execute([":total" => $orderTotalPrice, ":tax" => $orderTotalTax]);
 
         // Com order, com items, produto repetido
-        if ($orderItems && $this->isOrderItemRepeated($productId)) {
+        if ($orderItems && $this->isOrderItemRepeated($productId, $activeOrder['code'])) {
           $stmt = $this->db->prepare("SELECT * FROM order_item o
-            WHERE o.product_code = :product_code");
-          $stmt->execute([":product_code" => $data['product-code']]);
+            WHERE o.product_code = :product_code AND o.order_code = :order_code");
+          $stmt->execute([":product_code" => $data['product-code'], ":order_code" => $activeOrder['code']]);
           $existingOrderItem = $stmt->fetch(PDO::FETCH_ASSOC);
           $amountsAdded = $data['amount'] + $existingOrderItem['amount'];
           $newTotalTax = $this->calcOrderItemTotalTax($categoryTax, $productPrice, $data['amount']) + $existingOrderItem['tax'];
@@ -145,20 +145,24 @@ class OrderController
 
   private function calculateOrderWhenItemDeleted(int $deletedItemId)
   {
+
     $item_stmt = $this->db->prepare("SELECT * FROM order_item o WHERE o.code = :code");
     $item_stmt->execute([":code" => $deletedItemId]);
     $itemToDelete = $item_stmt->fetch(PDO::FETCH_ASSOC);
 
     $itemTotalPrice = $itemToDelete['tax'] + ($itemToDelete['amount'] * $itemToDelete['price']);
 
-    $order_stmt = $this->db->query("SELECT * FROM orders");
+    $order_stmt = $this->db->query("SELECT * FROM orders o WHERE o.status = 'open'");
     $activeOrder = $order_stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$activeOrder) {
+      throw new Exception("Error: No orders open.");
+    }
 
     $orderTotalPrice = $activeOrder['total'] - $itemTotalPrice;
     $orderTotalTax = $activeOrder['tax'] - $itemToDelete['tax'];
 
-    $order_update_stmt = $this->db->prepare("UPDATE orders o SET total = :total, tax = :tax");
-    $order_update_stmt->execute([":total" => $orderTotalPrice, ":tax" => $orderTotalTax]);
+    $order_update_stmt = $this->db->prepare("UPDATE orders o SET total = :total, tax = :tax WHERE o.code = :order_code");
+    $order_update_stmt->execute([":total" => $orderTotalPrice, ":tax" => $orderTotalTax, ":order_code" => $itemToDelete['order_code']]);
 
     if ($order_update_stmt->rowCount() === 0) {
       throw new Exception("Error during total calculation, no rows affected.");
