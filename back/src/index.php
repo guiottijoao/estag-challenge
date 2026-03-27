@@ -17,13 +17,20 @@ if ($product_stmt->rowCount() > 0) {
   $products = $product_stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-$order_item_stmt = $db->query("SELECT * FROM order_item");
-if ($order_item_stmt->rowCount() > 0) {
-  $orderItems = $order_item_stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
+// activeOrder só exsite se tiver um pedido com status open
 $orders_stmt = $db->query("SELECT * FROM orders o WHERE o.status = 'open'");
-$activeOrder = $orders_stmt->rowCount() > 0 ? $orders_stmt->fetch(PDO::FETCH_ASSOC) : null; 
+$activeOrder = $orders_stmt->rowCount() > 0 ? $orders_stmt->fetch(PDO::FETCH_ASSOC) : null;
+
+// orderItems só existe se o activeOrder existir e se orderItems DESSE pedido existirem
+$order_item_stmt = $db->prepare("SELECT * FROM order_item o WHERE o.order_code = :active_order_code");
+if ($activeOrder) {
+  // se tiver order ativo
+  $order_item_stmt->execute([":active_order_code" => $activeOrder['code']]);
+  if ($order_item_stmt->rowCount() > 0) {
+    // se tiver order ativo E algum item nesse order
+    $orderItems = $order_item_stmt->fetchAll(PDO::FETCH_ASSOC);
+  }
+}
 
 function findProductById($productId, $productsList)
 {
