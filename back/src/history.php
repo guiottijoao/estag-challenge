@@ -90,8 +90,8 @@ if ($order_items_stmt->rowCount() > 0) {
               <tr>
                 <td><?= $item['name'] ?></td>
                 <td><?= $item['amount'] ?></td>
-                <td><?= $item['price'] ?></td>
-                <td><?= $item['tax'] ?></td>
+                <td>$<?= number_format($item['price'], 2, ',', '.') ?></td>
+                <td><?= number_format($item['tax'], 2, ',', '.') ?>%</td>
               </tr>
             <?php endforeach ?>
           </tbody>
