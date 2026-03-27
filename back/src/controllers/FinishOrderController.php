@@ -23,7 +23,7 @@ class FinishOrderController
         
         if ($orderItems) {
           error_log("Joined first if");
-          $open_order_update_stmt = $this->db->prepare("UPDATE orders SET status = 'close'");
+          $open_order_update_stmt = $this->db->prepare("UPDATE orders SET status = 'closed'");
           $open_order_update_stmt->execute();
         }
       }

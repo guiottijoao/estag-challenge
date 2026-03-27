@@ -123,13 +123,16 @@ table {
   visibility: hidden;
   padding: 0.2rem;
 }
-.delete-btn {
+.delete-btn, .view-btn {
   background-color: #c5c5c5;
   text-decoration: none;
   color: black;
   border: none;
   transition: ease-in-out 100ms;
   padding: .2rem;
+}
+.view-btn {
+  background-color: #544fe6;
 }
 .delete-btn:hover {
   background-color: #9c9c9c;
