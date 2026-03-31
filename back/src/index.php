@@ -108,7 +108,7 @@ function calcTotalOrderItemPrice(int $amount, float $price, float $totalTax)
             <tbody id="orders-content-table">
               <?php foreach ($orderItems as $item): ?>
                 <tr>
-                  <td><?= $item['code'] ?></td>
+                  <td><?= $item['business_code'] ?></td>
                   <td><?= findProductById($item['product_code'], $products) ?></td>
                   <td><?= $item['amount'] ?></td>
                   <td>$<?= number_format($item['price'], 2, ',', '.') ?></td>

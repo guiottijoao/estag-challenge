@@ -85,8 +85,8 @@ class OrderController
       $activeOrder = $order_select_stmt->fetch(PDO::FETCH_ASSOC);
 
       $insert_item_stmt = $this->db->prepare(
-        "INSERT INTO order_item (order_code, product_code, amount, price, tax)
-        VALUES (:order_code, :product_code, :amount, :price, :tax)
+        "INSERT INTO order_item (order_code, product_code, amount, price, tax, business_code)
+        VALUES (:order_code, :product_code, :amount, :price, :tax, :business_code)
         RETURNING *"
       );
 
@@ -95,8 +95,7 @@ class OrderController
         $order_select_stmt = $this->db->query("SELECT * FROM orders o WHERE o.status = 'open'");
         $activeOrder = $order_select_stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $insert_item_stmt->execute([":order_code" => $activeOrder['code'], ":product_code" => $productId, "amount" => $productAmount, ":price" => $productPrice, ":tax" => $orderItemTotalTax]);
-
+        return $insert_item_stmt->execute([":order_code" => $activeOrder['code'], ":product_code" => $productId, "amount" => $productAmount, ":price" => $productPrice, ":tax" => $orderItemTotalTax, ":business_code" => $this->generateBusinessCode()]);
       } else {
         $orderTotalPrice = $activeOrder['total'] + $orderItemTotalPrice;
         $orderTotalTax = $activeOrder['tax'] + $orderItemTotalTax;
@@ -118,11 +117,23 @@ class OrderController
 
           return $existing_item_stmt->execute([":new_amount" => $amountsAdded, ":new_total_tax" => $newTotalTax, ":product_code" => $productId]);
         }
-        return $insert_item_stmt->execute([":order_code" => $activeOrder['code'], ":product_code" => $productId, "amount" => $productAmount, ":price" => $productPrice, ":tax" => $orderItemTotalTax]);
+        return $insert_item_stmt->execute([":order_code" => $activeOrder['code'], ":product_code" => $productId, "amount" => $productAmount, ":price" => $productPrice, ":tax" => $orderItemTotalTax, ":business_code" => $this->generateBusinessCode()]);
       }
     } catch (Exception $e) {
       throw $e;
     }
+  }
+
+  private function generateBusinessCode()
+  {
+    $stmt = $this->db->query(
+    "SELECT COALESCE(MAX(oi.business_code) + 1, 1)
+    FROM order_item oi
+    INNER JOIN orders o
+    ON oi.order_code = o.code
+    WHERE o.status = 'open'
+    ");
+    return $stmt->fetchColumn();
   }
 
   private function validate(array $data)

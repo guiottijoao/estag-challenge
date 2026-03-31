@@ -79,7 +79,7 @@ if ($stmt->rowCount() > 0) {
               foreach ($categories as $cat):
               ?>
                 <tr>
-                  <td><?= $cat['code'] ?></td>
+                  <td><?= $cat['business_code'] ?></td>
                   <td><?= $cat['name'] ?></td>
                   <td><?= number_format($cat['tax'], 2, ',', '.') ?>%</td>
                   <td>

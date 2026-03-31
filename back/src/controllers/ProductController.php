@@ -16,11 +16,12 @@ class ProductController
     try {
       $this->validate($data);
 
-      $stmt = $this->db->prepare("INSERT INTO products (name, amount, price, category_code) VALUES (:name, :amount, :price, :category_code)");
+      $stmt = $this->db->prepare("INSERT INTO products (name, amount, price, category_code, business_code) VALUES (:name, :amount, :price, :category_code, :business_code)");
       $stmt->bindValue(':name', $this->sanitize($data['name']), PDO::PARAM_STR);
       $stmt->bindValue(':amount', (int)$data['amount']);
       $stmt->bindValue(':price', $data['price']);
       $stmt->bindValue(':category_code', $data['category-code']);
+      $stmt->bindValue(':business_code', $this->generateBusinessCode());
 
       return $stmt->execute();
     } catch (Exception $e) {
@@ -42,6 +43,12 @@ class ProductController
     }
     $stmt = $this->db->prepare("UPDATE products SET status = 'inactive' WHERE code = :code");
     $stmt->execute(["code" => $productId]);
+  }
+
+  private function generateBusinessCode()
+  {
+    $stmt = $this->db->query("SELECT COALESCE(MAX(business_code) + 1, 1) FROM products WHERE status = 'active'");
+    return $stmt->fetchColumn();
   }
 
   private function validate(array $data)

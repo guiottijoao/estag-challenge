@@ -12,7 +12,6 @@ try {
   exit;
 } catch (Exception $e) {
   error_log("DB Error " . $e->getMessage());
-
   $message = urlencode($e->getMessage());
   header("Location: ../../index.php?error=$message");
   exit;

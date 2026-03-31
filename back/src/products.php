@@ -92,7 +92,7 @@ function findCategoryById($categoryId, $categoriesList)
             <tbody id="products-table-body">
               <?php foreach ($products as $prod): ?>
                 <tr>
-                  <td><?= $prod['code'] ?></td>
+                  <td><?= $prod['business_code'] ?></td>
                   <td><?= $prod['name'] ?></td>
                   <td><?= number_format($prod['amount'], 0, ',', '.') ?></td>
                   <td>$<?= number_format($prod['price'], 2, ',', '.') ?></td>
