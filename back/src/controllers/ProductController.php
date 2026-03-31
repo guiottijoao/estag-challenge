@@ -10,7 +10,8 @@ class ProductController
     $this->db = $db;
   }
 
-  public function store(array $data) {
+  public function store(array $data)
+  {
 
     try {
       $this->validate($data);
@@ -22,13 +23,29 @@ class ProductController
       $stmt->bindValue(':category_code', $data['category-code']);
 
       return $stmt->execute();
-
     } catch (Exception $e) {
       throw $e;
     }
   }
 
-  private function validate(array $data) {
+  public function delete($productId)
+  {
+    $associated_registers_stmt = $this->db->query(
+      "SELECT * FROM order_item oi
+      INNER JOIN orders o
+      ON oi.order_code = o.code
+      WHERE oi.product_code = '$productId'
+      AND o.status = 'open'"
+    );
+    if ($associated_registers_stmt->fetch()) {
+      throw new Exception("Can't delete, this item has associated registers.", 23503);
+    }
+    $stmt = $this->db->prepare("UPDATE products SET status = 'inactive' WHERE code = :code");
+    $stmt->execute(["code" => $productId]);
+  }
+
+  private function validate(array $data)
+  {
     $name = trim($data['name']);
     $amount = $data['amount'];
     $price = $data['price'];
@@ -57,25 +74,26 @@ class ProductController
     if ($price < 0.1 || $price > 1000000000) {
       throw new Exception("Price must be a number between 0.1 and 1000000000 (one billion)");
     }
-    
+
     if (empty($categoryCode)) {
       throw new Exception("Category is required");
     }
   }
 
-  private function nameExists(string $name) {
+  private function nameExists(string $name)
+  {
     $trimmedName = trim($name);
     $normalizedName = str_replace(' ', '', $trimmedName);
 
-    $query = "SELECT COUNT(*) FROM products WHERE LOWER(REPLACE(name, ' ', '')) = LOWER(:normalizedName)";
-    $stmt = $this->db->prepare($query);
+    $stmt = $this->db->prepare("SELECT COUNT(*) FROM products p WHERE p.status = 'active' AND LOWER(REPLACE(p.name, ' ', '')) = LOWER(:normalizedName)");
     $stmt->bindValue("normalizedName", $normalizedName);
     $stmt->execute();
 
     return $stmt->fetchColumn() > 0;
   }
 
-  private function sanitize(string $string) {
+  private function sanitize(string $string)
+  {
     return htmlspecialchars(preg_replace('/\s+/', ' ', trim($string)));
   }
 }

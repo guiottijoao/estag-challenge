@@ -5,7 +5,7 @@ $db = Database::getConnection();
 
 $categories = [];
 
-$stmt = $db->query("SELECT * FROM categories");
+$stmt = $db->query("SELECT * FROM categories c WHERE c.status = 'active'");
 
 if ($stmt->rowCount() > 0) {
   $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);

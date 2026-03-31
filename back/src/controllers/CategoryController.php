@@ -25,6 +25,20 @@ class CategoryController
     }
   }
 
+  public function delete($categoryId)
+  {
+    $associated_registers_stmt = $this->db->query(
+      "SELECT * FROM products p
+      WHERE p.category_code = '$categoryId'
+      AND p.status = 'active'"
+    );
+    if ($associated_registers_stmt->fetch()) {
+      throw new Exception("Can't delete, this item has associated registers.", 23503);
+    }
+    $stmt = $this->db->prepare('UPDATE categories SET status = :status WHERE code = :code');
+    $stmt->execute(["code" => $categoryId, "status" => 'inactive']);
+  }
+
   private function validate(array $data)
   {
     $name = trim($data['name']);
@@ -56,7 +70,7 @@ class CategoryController
     $trimmedName = trim($name);
     $normalizedName = str_replace(' ', '', $trimmedName);
 
-    $query = "SELECT COUNT(*) FROM categories WHERE LOWER(REPLACE(name, ' ', '')) = LOWER(:normalizedName)";
+    $query = "SELECT COUNT(*) FROM categories c WHERE c.status = 'active' AND LOWER(REPLACE(c.name, ' ', '')) = LOWER(:normalizedName)";
     $stmt = $this->db->prepare($query);
     $stmt->bindValue(':normalizedName', $normalizedName);
     $stmt->execute();

@@ -12,7 +12,7 @@ if ($category_stmt->rowCount() > 0) {
   $categories = $category_stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-$product_stmt = $db->query("SELECT * FROM products p WHERE p.amount > 0");
+$product_stmt = $db->query("SELECT * FROM products p WHERE p.amount > 0 AND p.status = 'active'");
 if ($product_stmt->rowCount() > 0) {
   $products = $product_stmt->fetchAll(PDO::FETCH_ASSOC);
 }

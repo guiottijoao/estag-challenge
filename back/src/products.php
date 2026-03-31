@@ -6,12 +6,12 @@ $db = Database::getConnection();
 $products = [];
 $categories = [];
 
-$category_stmt = $db->query("SELECT * FROM categories");
+$category_stmt = $db->query("SELECT * FROM categories c WHERE c.status = 'active'");
 if ($category_stmt->rowCount() > 0) {
   $categories = $category_stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-$product_stmt = $db->query("SELECT * FROM products");
+$product_stmt = $db->query("SELECT * FROM products p WHERE p.status = 'active'");
 if ($product_stmt->rowCount() > 0) {
   $products = $product_stmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -25,7 +25,7 @@ function findCategoryById($categoryId, $categoriesList)
 
 <?php if (isset($_GET['error']) && $_GET['error'] === 'fk'): ?>
   <script>
-    alert("Can't delete, this item has associated registrations.")
+    alert("Can't delete, this item has associated registers.")
   </script>
 
 <?php elseif (isset($_GET['error'])):  ?>
