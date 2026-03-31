@@ -151,8 +151,6 @@ function calcTotalOrderItemPrice(int $amount, float $price, float $totalTax)
     const orderProductAmountInput = document.getElementById("product-amount");
     const orderTaxInput = document.getElementById("order-tax");
     const orderPriceInput = document.getElementById("product-unit-price");
-    const totalOrderPrice = document.getElementById("total-order-price");
-    const totalOrderTax = document.getElementById("total-order-tax");
 
     document.getElementById("product-selector").addEventListener("change", (e) => {
       const code = e.target.value;
